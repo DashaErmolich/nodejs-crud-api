@@ -14,8 +14,10 @@ export type Endpoints = {
 
 export type EventHandler = (req: http.IncomingMessage, res: http.ServerResponse) => void;
 
+export type UserBody = Omit<User, 'id'>;
+
 export interface MyRequest extends http.IncomingMessage {
-  body: {},
+  body: UserBody,
   data: {
     userId: string,
   }

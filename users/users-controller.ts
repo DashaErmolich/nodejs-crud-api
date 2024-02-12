@@ -1,24 +1,40 @@
 
-import { USERS } from '../db';
 import * as http from 'http';
-import { MyResponse, MyRequest } from '../models/endpoint.model';
+import { MyResponse, MyRequest, UserBody } from '../models/endpoint.model';
 import { User } from '../models/user.model';
 import { StatusCode } from '../constants/status-code.enum';
+import { HttpError } from '../errors/HttpException';
+import { userService } from './users-server';
 
 export async function getUser(req: http.IncomingMessage, res: http.ServerResponse) {
+try {
   const userId = (req as MyRequest).data?.userId;
+  
   if (userId) {
-    const user: User | undefined = USERS.find((user) => user.id === userId);
+    const user: User | undefined = userService.findOne(userId);
     if (user) {
       return (res as MyResponse).send<User>({ statusCode: StatusCode.OK, data: user });
     } else {
-      return (res as MyResponse).send<string>({ statusCode: StatusCode.NON_EXISTS_ERROR, data: 'User not found' });
+      throw new HttpError(StatusCode.NON_EXISTS_ERROR, 'User not found')
     }
   }
 
-  return (res as MyResponse).send<User[]>({ statusCode: StatusCode.OK, data: USERS });
+  (res as MyResponse).send<User[]>({ statusCode: StatusCode.OK, data: userService.getAll() });
+
+} catch (error) {
+  (res as MyResponse).send({ statusCode: StatusCode.NON_EXISTS_ERROR, data: error });
+}
 }
 
-export async function createUser(_req: http.IncomingMessage, _res: http.ServerResponse) {
-  return USERS[0];
+export async function createUser(req: http.IncomingMessage, res: http.ServerResponse) {
+  try {
+    const data: UserBody = (req as MyRequest).body;
+    const newUser: User = {...data, id: crypto.randomUUID() };
+
+    userService.addOne(newUser);
+
+    (res as MyResponse).send<User>({ statusCode: StatusCode.CREATED, data: newUser });
+  } catch (error) {
+    (res as MyResponse).send({ statusCode: StatusCode.NON_EXISTS_ERROR, data: error });
+  }
 }
