@@ -59,3 +59,22 @@ export async function updateUser(req: http.IncomingMessage, res: http.ServerResp
     (res as MyResponse).send({ statusCode: StatusCode.NON_EXISTS_ERROR, data: error });
   }
 }
+
+export async function deleteUser(req: http.IncomingMessage, res: http.ServerResponse) {
+  try {
+    const userId = (req as MyRequest).data?.userId;
+    
+    if (userId) {
+      const user: User | undefined = userService.findOne(userId);
+      if (user) {
+        userService.deleteOne(user.id);
+        return (res as MyResponse).send<string>({ statusCode: StatusCode.OK, data: 'User deleted' });
+      } else {
+        throw new HttpError(StatusCode.NON_EXISTS_ERROR, 'User not found')
+      }
+    }
+  
+  } catch (error) {
+    (res as MyResponse).send({ statusCode: StatusCode.NON_EXISTS_ERROR, data: error });
+  }
+}

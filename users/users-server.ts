@@ -25,6 +25,10 @@ export class UserService {
   updateOne(updatedUser: User): void {
     this.users = [...this.users.map((user) => user.id === updatedUser.id ? user = {...updatedUser} : user = user)]
   }
+
+  deleteOne(userId: string): void {
+    this.users = [...this.users.filter((user) => user.id !== userId)];
+  }
 }
 
 export const userService = new UserService();
